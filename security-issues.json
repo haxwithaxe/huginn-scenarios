@@ -1,0 +1,686 @@
+{
+  "schema_version": 1,
+  "name": "Security Issues",
+  "description": "Detects security issues with the given software. \r\n\r\n# Searches\r\n- Email\r\n- ExploitDB (via RSS)\r\n- Github commits (via RSS)\r\n- Github notifications\r\n- RSS feeds (TincVPN)\r\n- Webpages (NGINX security advisories)\r\n\r\n# Credentials\r\nRequires the following credentials:\r\n\r\n* mail_bot_username - The username for the ImapFolderAgent \"Mail Bot Firehose\"\r\n* mail_bot_password - The password for the ImapFolderAgent \"Mail Bot Firehose\"\r\n* github_access_token - Your Github access token for the GithubNotificationsAgent \"Github Notifications\"",
+  "source_url": false,
+  "guid": "b66d2d2044cd37f704b71f2368c5b8d5",
+  "tag_fg_color": "#ffffff",
+  "tag_bg_color": "#de5b8c",
+  "icon": "flag",
+  "exported_at": "2023-01-12T16:47:58Z",
+  "agents": [
+    {
+      "type": "Agents::JqAgent",
+      "name": "TincVPN RSS Security Prefilter",
+      "disabled": false,
+      "guid": "02ef268cd2d7b5153cd6fe65baa4aaa8",
+      "options": {
+        "filter": "{ \"url\": .url, \"title\": .title, \"source\": \"tinc-vpn:rss\", \"content\": .content, \"description\": .description, \"text\": ( ( if .description and .description != \"\" and .description != .content then \"<div>\" + .description + \"</div>\" else \"\" end ) + ( if .content and .content != \"\" then \"<div>\" + .content + \"</div>\" else \"\" end ) ), \"fulltext\": ( .title + .description + .content ), \"date\": ( if .date_published and .date_published != \"\" then .date_published else .last_updated end ) }",
+        "variables": {
+        }
+      },
+      "keep_events_for": 2592000,
+      "propagate_immediately": true
+    },
+    {
+      "type": "Agents::RssAgent",
+      "name": "Exploit DB RSS",
+      "disabled": false,
+      "guid": "07fdcf493eea239c5f1193aeee760e52",
+      "options": {
+        "expected_update_period_in_days": "5",
+        "clean": "false",
+        "url": "https://www.exploit-db.com/rss.xml"
+      },
+      "schedule": "every_2h",
+      "keep_events_for": 2592000
+    },
+    {
+      "type": "Agents::JqAgent",
+      "name": "Security Issue Formatter",
+      "disabled": false,
+      "guid": "1151bcf6d5e6734fa15a90ec55572003",
+      "options": {
+        "filter": "{ \"message\": ( \"<h3>\" + .source + \" <a href=\\\"\" + .url + \"\\\">\" + .title + \"</a></h3><div><small>\" + .date + \"</small></div><div>\" + .text + \"</div>\" ) }",
+        "variables": {
+        }
+      },
+      "keep_events_for": 2592000,
+      "propagate_immediately": true
+    },
+    {
+      "type": "Agents::TriggerAgent",
+      "name": "Security Issue Bad Pass Filter",
+      "disabled": false,
+      "guid": "16ff55791c781c049f0539e651317465",
+      "options": {
+        "expected_receive_period_in_days": "2",
+        "keep_event": "true",
+        "rules": [
+          {
+            "type": "regex",
+            "value": ".*(security|exploit|cve|seg fault|segmentation fault|ddos|denial of service).*",
+            "path": "fulltext"
+          },
+          {
+            "type": "regex",
+            "value": "^rce[ \\t,.:;<]+.*",
+            "path": "fulltext"
+          },
+          {
+            "type": "regex",
+            "value": ".*[ \\t.,:;>]+rce[ \\t,.:;<]+.*",
+            "path": "fulltext"
+          }
+        ],
+        "must_match": "1"
+      },
+      "keep_events_for": 2592000,
+      "propagate_immediately": true
+    },
+    {
+      "type": "Agents::TriggerAgent",
+      "name": "ExploitDB OS Trigger",
+      "disabled": false,
+      "guid": "1838a61d3bec3bdd0a4bf77738f2433d",
+      "options": {
+        "expected_receive_period_in_days": "7",
+        "keep_event": "true",
+        "rules": [
+          {
+            "type": "regex",
+            "value": ".*(opnsense|pfsense).*",
+            "path": "title"
+          },
+          {
+            "type": "regex",
+            "value": ".*(debian|ubuntu).*",
+            "path": "title"
+          }
+        ],
+        "must_match": "1"
+      },
+      "keep_events_for": 7776000,
+      "propagate_immediately": true
+    },
+    {
+      "type": "Agents::JqAgent",
+      "name": "NGINX Security Advisory Formatter",
+      "disabled": false,
+      "guid": "1b61495c764aee9ce38f81f6f220e320",
+      "options": {
+        "filter": "{\"date\": null, \"title\": ( if .last_advisory and .last_advisory != \"\" then ( .last_advisory / \"<br>\" | .[0] / \"<p>\" | .[-1] ) else \"Error getting advisories!\" end ), \"url\": \"https://nginx.org/en/security_advisories.html\", \"source\": \"nginx:security-advisories\", \"text\": ( if .last_advisory and .last_advisory != \"\" then ( .last_advisory / \"<br>\" | .[1:] | join(\"<br />\") / \"</p>\" | .[0] ) else \"Error getting advisories\" end ) }",
+        "variables": {
+        }
+      },
+      "keep_events_for": 15552000,
+      "propagate_immediately": true
+    },
+    {
+      "type": "Agents::RssAgent",
+      "name": "Jedi Commits RSS",
+      "disabled": false,
+      "guid": "24a8980b81e72a5001bb72ee3685e24a",
+      "options": {
+        "expected_update_period_in_days": "700",
+        "clean": "false",
+        "url": "https://github.com/davidhalter/jedi/commits/master.atom"
+      },
+      "schedule": "every_2h",
+      "keep_events_for": 0
+    },
+    {
+      "type": "Agents::TriggerAgent",
+      "name": "ExploitDB Monitoring Service Trigger",
+      "disabled": false,
+      "guid": "2509fd4d5c6958382bc40acf653d133a",
+      "options": {
+        "expected_receive_period_in_days": "7",
+        "keep_event": "true",
+        "rules": [
+          {
+            "type": "regex",
+            "value": ".*(grafana|loki|promtail).*",
+            "path": "title"
+          },
+          {
+            "type": "regex",
+            "value": ".*(alertmanager|prometheus|node-exporter).*",
+            "path": "title"
+          },
+          {
+            "type": "regex",
+            "value": ".*(ntfy).*",
+            "path": "title"
+          },
+          {
+            "type": "regex",
+            "value": ".*(netdata).*",
+            "path": "title"
+          }
+        ],
+        "must_match": "1"
+      },
+      "keep_events_for": 7776000,
+      "propagate_immediately": true
+    },
+    {
+      "type": "Agents::RssAgent",
+      "name": "Paramiko Commits RSS",
+      "disabled": false,
+      "guid": "2c74a86303a48e02895e60169243cbc7",
+      "options": {
+        "expected_update_period_in_days": "180",
+        "clean": "false",
+        "url": "https://github.com/paramiko/paramiko/commits/main.atom"
+      },
+      "schedule": "every_2h",
+      "keep_events_for": 15552000
+    },
+    {
+      "type": "Agents::WebsiteAgent",
+      "name": "NGINX Security Advisories Page",
+      "disabled": false,
+      "guid": "2e44c3b30fceade8d1afabf35bbc4071",
+      "options": {
+        "expected_update_period_in_days": "180",
+        "url": "https://nginx.org/en/security_advisories.html",
+        "type": "html",
+        "mode": "on_change",
+        "extract": {
+          "last_advisory": {
+            "xpath": "/html/body/div[2]/div[2]/ul/li[1]/p",
+            "value": "."
+          }
+        }
+      },
+      "schedule": "every_12h",
+      "keep_events_for": 15552000,
+      "propagate_immediately": false
+    },
+    {
+      "type": "Agents::JqAgent",
+      "name": "Github Notification Security Preformatter",
+      "disabled": false,
+      "guid": "347594ec8b4b1dff472703fb9983d9dc",
+      "options": {
+        "filter": "{ \"url\": .subject.url_web, \"title\": .subject.title, \"source\": ( \"github:\" + .subject.repo_name + \":notifications\" ), \"date\": .updated_at, \"text\": \"<div>See link for details.</div>\", \"fulltext\": \"\" }",
+        "variables": {
+        }
+      },
+      "keep_events_for": 2592000,
+      "propagate_immediately": false
+    },
+    {
+      "type": "Agents::TriggerAgent",
+      "name": "ExploitDB Python Package Trigger",
+      "disabled": false,
+      "guid": "38b8e763ca22f77fe12055a591bd5fbb",
+      "options": {
+        "expected_receive_period_in_days": "7",
+        "keep_event": "true",
+        "rules": [
+          {
+            "type": "regex",
+            "value": ".*(pyyaml|pylint|jedi).*",
+            "path": "title"
+          },
+          {
+            "type": "regex",
+            "value": ".*(ansible).*",
+            "path": "title"
+          },
+          {
+            "type": "regex",
+            "value": ".*(paramiko).*",
+            "path": "title"
+          }
+        ],
+        "must_match": "1"
+      },
+      "keep_events_for": 7776000,
+      "propagate_immediately": true
+    },
+    {
+      "type": "Agents::RssAgent",
+      "name": "Ansible Commits RSS",
+      "disabled": false,
+      "guid": "3d0fa102f3af7dd04542435b0f7de649",
+      "options": {
+        "expected_update_period_in_days": "60",
+        "clean": "false",
+        "url": "https://github.com/ansible/ansible/commits/devel.atom"
+      },
+      "schedule": "every_2h",
+      "keep_events_for": 7776000
+    },
+    {
+      "type": "Agents::RssAgent",
+      "name": "ACME-DNS Commits RSS",
+      "disabled": false,
+      "guid": "3f8f7dd428436d28be9dedad7fcfa986",
+      "options": {
+        "expected_update_period_in_days": "180",
+        "clean": "false",
+        "url": "https://github.com/joohoi/acme-dns/commits/master.atom"
+      },
+      "schedule": "every_2h",
+      "keep_events_for": 2592000
+    },
+    {
+      "type": "Agents::JqAgent",
+      "name": "Tinc VPN Security Formatter",
+      "disabled": false,
+      "guid": "3ff991c5f57a27be86f21e00cdb4cb75",
+      "options": {
+        "filter": "{ \\\"origin\\\": \\\"Tinc VPN\\\", \\\"url\\\": .url, \\\"title\\\": .title, \\\"text\\\": ( .content // .description ), \\\"date_published\\\": .date_published }",
+        "variables": {
+        }
+      },
+      "keep_events_for": 2592000,
+      "propagate_immediately": false
+    },
+    {
+      "type": "Agents::RssAgent",
+      "name": "NGINX Commits RSS",
+      "disabled": false,
+      "guid": "443de9c682bae2ec901a53604a9ba8f8",
+      "options": {
+        "expected_update_period_in_days": "60",
+        "clean": "false",
+        "url": "https://github.com/nginx/nginx/commits/master.atom"
+      },
+      "schedule": "every_2h",
+      "keep_events_for": 7776000
+    },
+    {
+      "type": "Agents::GithubNotificationsAgent",
+      "name": "Github Notifications",
+      "disabled": false,
+      "guid": "507573faf8e99e351f561cd13fcb5a01",
+      "options": {
+        "access_token": "{% credential github_access_token %}",
+        "events": "multiple",
+        "last_modified": true
+      },
+      "schedule": "every_2h",
+      "keep_events_for": 2592000
+    },
+    {
+      "type": "Agents::JqAgent",
+      "name": "Mail Bot Prefilter",
+      "disabled": false,
+      "guid": "55e0176ed8e3585181948778f6e39528",
+      "options": {
+        "filter": "{ \"url\": \"#\", \"title\": .subject, \"source\": ( \"mail:\" + .from  ), \"date\": .date, \"text\": ( \"<div>\" + .body + \"</div>\" ), \"fulltext\": ( .subject + .body ) }",
+        "variables": {
+        }
+      },
+      "keep_events_for": 2592000,
+      "propagate_immediately": true
+    },
+    {
+      "type": "Agents::ImapFolderAgent",
+      "name": "Mail Bot Firehose",
+      "disabled": false,
+      "guid": "8bc2d62c0a53386689ac59b166393b70",
+      "options": {
+        "expected_update_period_in_days": "90",
+        "host": "imap.gmail.com",
+        "ssl": true,
+        "username": "{% credential mail_bot_username %}",
+        "password": "{% credential mail_bot_password %}",
+        "folders": [
+          "INBOX"
+        ],
+        "conditions": {
+        }
+      },
+      "schedule": "every_30m",
+      "keep_events_for": 0
+    },
+    {
+      "type": "Agents::RssAgent",
+      "name": "Flake8 Commits RSS",
+      "disabled": false,
+      "guid": "8d79f6cc672c6ae86a449fcf8bb7e9bb",
+      "options": {
+        "expected_update_period_in_days": "180",
+        "clean": "false",
+        "url": "https://github.com/PyCQA/flake8/commits/main.atom"
+      },
+      "schedule": "every_2h",
+      "keep_events_for": 2592000
+    },
+    {
+      "type": "Agents::JqAgent",
+      "name": "Github RSS Commits Security Prefilter",
+      "disabled": false,
+      "guid": "9acf42f41ad7127050c211bbebe2ca3f",
+      "options": {
+        "filter": "{ \"url\": .url, \"title\": .title, \"source\": ( .url / \"/\" | \"github:\" + .[3] + \"/\" + .[4]  + \":commits\"), \"content\": .content, \"description\": .description, \"text\": ( ( if .description and .description != \"\" and .description != .content then \"<div>\" + .description + \"</div>\" else \"\" end ) + ( if .content and .content != \"\" then \"<div>\" + .content + \"</div>\" else \"\" end ) ), \"fulltext\": ( .title + .description + .content ), \"date\": ( if .date_published and .date_published != \"\" then .date_published else .last_updated end ) }",
+        "variables": {
+        }
+      },
+      "keep_events_for": 2592000,
+      "propagate_immediately": false
+    },
+    {
+      "type": "Agents::JqAgent",
+      "name": "ExploitDB RSS Security Prefilter",
+      "disabled": false,
+      "guid": "9bbcb3fc4c7ceb5e7cba30b78131b2dd",
+      "options": {
+        "filter": "{ \"url\": .url, \"title\": .title, \"source\": \"exploitdb\", \"content\": .content, \"description\": .description, \"text\": ( ( if .description and .description != \"\" and .description != .content then \"<div>\" + .description + \"</div>\" else \"\" end ) + ( if .content and .content != \"\" then \"<div>\" + .content + \"</div>\" else \"\" end ) ), \"fulltext\": ( .title + .description + .content ), \"date\": ( if .date_published and .date_published != \"\" then .date_published else .last_updated end ) }",
+        "variables": {
+        }
+      },
+      "keep_events_for": 2592000,
+      "propagate_immediately": false
+    },
+    {
+      "type": "Agents::RssAgent",
+      "name": "OPNSense Commits RSS",
+      "disabled": false,
+      "guid": "9cbb8500d979e484502102e53b7727bc",
+      "options": {
+        "expected_update_period_in_days": "60",
+        "clean": "false",
+        "url": "https://github.com/opnsense/core/commits/master.atom"
+      },
+      "schedule": "every_2h",
+      "keep_events_for": 15552000
+    },
+    {
+      "type": "Agents::TriggerAgent",
+      "name": "ExploitDB Home Services Trigger",
+      "disabled": false,
+      "guid": "aab3464f7ffb3347d3da89964e547839",
+      "options": {
+        "expected_receive_period_in_days": "7",
+        "keep_event": "true",
+        "rules": [
+          {
+            "type": "regex",
+            "value": ".*(acme-dns|huginn|unifi).*",
+            "path": "title"
+          },
+          {
+            "type": "regex",
+            "value": ".*(qbittorrent|plex).*",
+            "path": "title"
+          }
+        ],
+        "must_match": "1"
+      },
+      "keep_events_for": 7776000,
+      "propagate_immediately": true
+    },
+    {
+      "type": "Agents::RssAgent",
+      "name": "Tinc VPN RSS",
+      "disabled": false,
+      "guid": "b67af6792e97a2ee2f9532030eb8ae26",
+      "options": {
+        "expected_update_period_in_days": "30",
+        "clean": "false",
+        "url": "https://www.tinc-vpn.org/news/index.rss"
+      },
+      "schedule": "every_12h",
+      "keep_events_for": 2592000
+    },
+    {
+      "type": "Agents::RssAgent",
+      "name": "qBittorrent Commits RSS",
+      "disabled": false,
+      "guid": "be4f2cc47f731217ad2b558e9b8e2756",
+      "options": {
+        "expected_update_period_in_days": "60",
+        "clean": "false",
+        "url": "https://github.com/qbittorrent/qBittorrent/commits/master.atom"
+      },
+      "schedule": "every_2h",
+      "keep_events_for": 2592000
+    },
+    {
+      "type": "Agents::TriggerAgent",
+      "name": "ExploitDB My Projects Trigger",
+      "disabled": false,
+      "guid": "c1f291ebbc88fa2dbf470a23faabbaca",
+      "options": {
+        "expected_receive_period_in_days": "7",
+        "keep_event": "true",
+        "rules": [
+          {
+            "type": "regex",
+            "value": ".*ntfyr.*",
+            "path": "title"
+          },
+          {
+            "type": "regex",
+            "value": ".*certdeploy.*",
+            "path": "title"
+          },
+          {
+            "type": "regex",
+            "value": ".*haxwithaxe.*",
+            "path": "title"
+          }
+        ],
+        "must_match": "1"
+      },
+      "keep_events_for": 7776000,
+      "propagate_immediately": true
+    },
+    {
+      "type": "Agents::RssAgent",
+      "name": "PyLint Commits RSS",
+      "disabled": false,
+      "guid": "cc42fb318a7abd9efc788b8c6ebef3ff",
+      "options": {
+        "expected_update_period_in_days": "180",
+        "clean": "false",
+        "url": "https://github.com/PyCQA/pylint/commits/main.atom"
+      },
+      "schedule": "every_2h",
+      "keep_events_for": 2592000
+    },
+    {
+      "type": "Agents::TriggerAgent",
+      "name": "ExploitDB Infrastructure Trigger",
+      "disabled": false,
+      "guid": "cd06b1e98e1696d9f3bba3e4b5bdb1c9",
+      "options": {
+        "expected_receive_period_in_days": "7",
+        "keep_event": "true",
+        "rules": [
+          {
+            "type": "regex",
+            "value": ".*(tinc|wiregaurd|tailscale).*",
+            "path": "title"
+          }
+        ],
+        "must_match": "1"
+      },
+      "keep_events_for": 0,
+      "propagate_immediately": true
+    },
+    {
+      "type": "Agents::EmailDigestAgent",
+      "name": "Security Issues Digest",
+      "disabled": false,
+      "guid": "d72b0ce9b165f912e8ac72da22467416",
+      "options": {
+        "subject": "Security Issues Detected",
+        "headline": "Found the following security issues in the past 2hr:",
+        "expected_receive_period_in_days": "30"
+      },
+      "schedule": "every_2h",
+      "propagate_immediately": false
+    },
+    {
+      "type": "Agents::TriggerAgent",
+      "name": "Github Security Notification Pass Filter",
+      "disabled": false,
+      "guid": "f0cf933e334f2296fabe68376bc6a070",
+      "options": {
+        "expected_receive_period_in_days": "60",
+        "keep_event": "true",
+        "rules": [
+          {
+            "type": "field==value",
+            "value": "security_alert",
+            "path": "reason"
+          }
+        ]
+      },
+      "keep_events_for": 2592000,
+      "propagate_immediately": false
+    }
+  ],
+  "links": [
+    {
+      "source": 0,
+      "receiver": 2
+    },
+    {
+      "source": 0,
+      "receiver": 3
+    },
+    {
+      "source": 1,
+      "receiver": 21
+    },
+    {
+      "source": 2,
+      "receiver": 29
+    },
+    {
+      "source": 3,
+      "receiver": 2
+    },
+    {
+      "source": 4,
+      "receiver": 2
+    },
+    {
+      "source": 5,
+      "receiver": 2
+    },
+    {
+      "source": 6,
+      "receiver": 20
+    },
+    {
+      "source": 7,
+      "receiver": 2
+    },
+    {
+      "source": 8,
+      "receiver": 20
+    },
+    {
+      "source": 9,
+      "receiver": 5
+    },
+    {
+      "source": 10,
+      "receiver": 2
+    },
+    {
+      "source": 11,
+      "receiver": 2
+    },
+    {
+      "source": 12,
+      "receiver": 20
+    },
+    {
+      "source": 13,
+      "receiver": 20
+    },
+    {
+      "source": 15,
+      "receiver": 20
+    },
+    {
+      "source": 16,
+      "receiver": 30
+    },
+    {
+      "source": 17,
+      "receiver": 3
+    },
+    {
+      "source": 18,
+      "receiver": 17
+    },
+    {
+      "source": 19,
+      "receiver": 20
+    },
+    {
+      "source": 20,
+      "receiver": 3
+    },
+    {
+      "source": 21,
+      "receiver": 28
+    },
+    {
+      "source": 21,
+      "receiver": 23
+    },
+    {
+      "source": 21,
+      "receiver": 7
+    },
+    {
+      "source": 21,
+      "receiver": 4
+    },
+    {
+      "source": 21,
+      "receiver": 11
+    },
+    {
+      "source": 21,
+      "receiver": 26
+    },
+    {
+      "source": 22,
+      "receiver": 20
+    },
+    {
+      "source": 23,
+      "receiver": 2
+    },
+    {
+      "source": 24,
+      "receiver": 0
+    },
+    {
+      "source": 25,
+      "receiver": 20
+    },
+    {
+      "source": 26,
+      "receiver": 2
+    },
+    {
+      "source": 27,
+      "receiver": 20
+    },
+    {
+      "source": 28,
+      "receiver": 2
+    },
+    {
+      "source": 30,
+      "receiver": 10
+    }
+  ],
+  "control_links": [
+
+  ]
+}
