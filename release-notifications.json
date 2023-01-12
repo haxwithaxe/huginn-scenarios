@@ -1,0 +1,588 @@
+{
+  "schema_version": 1,
+  "name": "Release Notifications",
+  "description": "Create an email digest with daily updates on software releases.",
+  "source_url": false,
+  "guid": "3b739782d95d1bf035d52b142fbf5fd9",
+  "tag_fg_color": "#ffffff",
+  "tag_bg_color": "#84de5b",
+  "icon": "gift",
+  "exported_at": "2023-01-12T18:02:00Z",
+  "agents": [
+    {
+      "type": "Agents::TriggerAgent",
+      "name": "Tag Release Filter",
+      "disabled": false,
+      "guid": "04d533e5eba27260d10dd0fac937cd15",
+      "options": {
+        "expected_receive_period_in_days": "175",
+        "keep_event": "true",
+        "rules": [
+          {
+            "type": "!regex",
+            "value": ".*(beta|alpha|pre|candidate|rc).*",
+            "path": "title"
+          },
+          {
+            "type": "regex",
+            "value": "v?[0-9]+(\\.[0-9]+)*(-[a-z0-9]+)*.",
+            "path": "version"
+          }
+        ]
+      },
+      "keep_events_for": 2592000,
+      "propagate_immediately": false
+    },
+    {
+      "type": "Agents::TriggerAgent",
+      "name": "Tag Release Strict Filter",
+      "disabled": false,
+      "guid": "084bcfc873f1f09aac13d8b82183bae9",
+      "options": {
+        "expected_receive_period_in_days": "175",
+        "keep_event": "true",
+        "rules": [
+          {
+            "type": "regex",
+            "value": "v?[0-9]+(\\.[0-9]+)+",
+            "path": "version"
+          }
+        ]
+      },
+      "keep_events_for": 2592000,
+      "propagate_immediately": false
+    },
+    {
+      "type": "Agents::RssAgent",
+      "name": "Loki Releases RSS",
+      "disabled": false,
+      "guid": "0c323ea84376bac94387a95223cded5e",
+      "options": {
+        "expected_update_period_in_days": "5",
+        "clean": "false",
+        "url": "https://github.com/grafana/loki/releases.atom"
+      },
+      "schedule": "every_1d",
+      "keep_events_for": 2592000
+    },
+    {
+      "type": "Agents::EmailDigestAgent",
+      "name": "Release Digest Email",
+      "disabled": false,
+      "guid": "101f660af506e851fb1260e12f520b4c",
+      "options": {
+        "subject": "Software Release Digest",
+        "headline": "Software releases in the past 24 hours:",
+        "expected_receive_period_in_days": "60",
+        "content_type": "text/html"
+      },
+      "schedule": "8am",
+      "propagate_immediately": false
+    },
+    {
+      "type": "Agents::RssAgent",
+      "name": "Flake8 Release RSS",
+      "disabled": false,
+      "guid": "1123819e077605a8bc1171a54fde13a7",
+      "options": {
+        "expected_update_period_in_days": "60",
+        "clean": "false",
+        "url": "https://github.com/PyCQA/flake8/releases.atom"
+      },
+      "schedule": "every_1d",
+      "keep_events_for": 7776000
+    },
+    {
+      "type": "Agents::RssAgent",
+      "name": "Prometheus Releases RSS",
+      "disabled": false,
+      "guid": "2b6eb0f66e31af624fba44cc59b3df6c",
+      "options": {
+        "expected_update_period_in_days": "5",
+        "clean": "false",
+        "url": "https://github.com/prometheus/prometheus/releases.atom"
+      },
+      "schedule": "every_1d",
+      "keep_events_for": 2592000
+    },
+    {
+      "type": "Agents::JqAgent",
+      "name": "Github Release To Digest Entry",
+      "disabled": false,
+      "guid": "2e328439123cc85cd40961bb2c028540",
+      "options": {
+        "filter": "{ \"message\" : ( \"<h3>github:\" + ( .url / \"/\" | .[-5] + \"/\" + .[-4] ) + \":release <a href=\\\"\" +  .url + \"\\\">\" + .title + \"</a></h3><div><small>\" + ( if .date_published and .date_published != \"\" then .date_published else .last_updated end ) + \"</small></div><div>\" + .content + \"</div>\" ) }",
+        "variables": {
+        }
+      },
+      "keep_events_for": 2592000,
+      "propagate_immediately": true
+    },
+    {
+      "type": "Agents::RssAgent",
+      "name": "OPNSense Tag RSS",
+      "disabled": false,
+      "guid": "363aecc59b49387d16e805eacd673e34",
+      "options": {
+        "expected_update_period_in_days": "60",
+        "clean": "false",
+        "url": "https://github.com/opnsense/core/tags.atom"
+      },
+      "schedule": "every_1d",
+      "keep_events_for": 15552000
+    },
+    {
+      "type": "Agents::RssAgent",
+      "name": "Jedi Tag RSS",
+      "disabled": false,
+      "guid": "3c02daec812ac31475bb88a917c42b4e",
+      "options": {
+        "expected_update_period_in_days": "700",
+        "clean": "false",
+        "url": "https://github.com/davidhalter/jedi/tags.atom"
+      },
+      "schedule": "every_1d",
+      "keep_events_for": 0
+    },
+    {
+      "type": "Agents::JqAgent",
+      "name": "Github Tag RSS Strict Prefilter",
+      "disabled": false,
+      "guid": "4190484a9a5d4005c59a1049d15297f7",
+      "options": {
+        "filter": "{ \"url\": .url, \"title\": .title, \"content\": .content, \"description\": .description, \"date\": ( if .date_published and .date_published != \"\" then .date_published else .last_updated end ), \"source\": ( .url / \"/\" | \"github:\" + .[3] + \"/\" + .[4] + \":tags\"), \"tag\": ( .title / \":\" | .[0] ), \"version\": ( .title | match(\"v?[0-9]+(\\\\.[0-9]+)+[a-zA-Z0-9_.~+-]*\" ) | .string? // \"\" ), \"text\": ( if .content and .content != \"\" then .content else .description end ), \"fulltext\": ( .title + .description + .content ) }",
+        "variables": {
+        }
+      },
+      "keep_events_for": 2592000,
+      "propagate_immediately": false
+    },
+    {
+      "type": "Agents::RssAgent",
+      "name": "Paramiko Tag RSS",
+      "disabled": false,
+      "guid": "44d88d5fd7d2f0fee52e0b7cb1aae7a2",
+      "options": {
+        "expected_update_period_in_days": "180",
+        "clean": "false",
+        "url": "https://github.com/paramiko/paramiko/tags.atom"
+      },
+      "schedule": "every_1d",
+      "keep_events_for": 15552000
+    },
+    {
+      "type": "Agents::JqAgent",
+      "name": "Mail Bot Prefilter",
+      "disabled": false,
+      "guid": "55e0176ed8e3585181948778f6e39528",
+      "options": {
+        "filter": "{ \"url\": \"#\", \"title\": .subject, \"source\": ( \"mail:\" + .from  ), \"date\": .date, \"text\": ( \"<div>\" + .body + \"</div>\" ), \"fulltext\": ( .subject + .body ) }",
+        "variables": {
+        }
+      },
+      "keep_events_for": 2592000,
+      "propagate_immediately": true
+    },
+    {
+      "type": "Agents::TriggerAgent",
+      "name": "TincVPN Release Filter",
+      "disabled": false,
+      "guid": "5ad18c7662e26df68a71ead0ba431538",
+      "options": {
+        "expected_receive_period_in_days": "175",
+        "keep_event": "true",
+        "rules": [
+          {
+            "type": "!regex",
+            "value": ".*(beta|alpha).*",
+            "path": "title"
+          },
+          {
+            "type": "regex",
+            "value": ".*v?[0-9]+(\\.[0-9]+)*(-[a-z0-9]+)*.*",
+            "path": "title"
+          }
+        ]
+      },
+      "keep_events_for": 2592000,
+      "propagate_immediately": false
+    },
+    {
+      "type": "Agents::RssAgent",
+      "name": "ntfy.sh Releases RSS",
+      "disabled": false,
+      "guid": "737835ff31347e85fa661c2331ceb3b6",
+      "options": {
+        "expected_update_period_in_days": "5",
+        "clean": "false",
+        "url": "https://github.com/binwiederhier/ntfy/releases.atom"
+      },
+      "schedule": "every_1d",
+      "keep_events_for": 0
+    },
+    {
+      "type": "Agents::RssAgent",
+      "name": "NGINX Tags RSS",
+      "disabled": false,
+      "guid": "742a53115654cdeeb94ff25a1d705b79",
+      "options": {
+        "expected_update_period_in_days": "5",
+        "clean": "false",
+        "url": "https://github.com/nginx/nginx/tags.atom"
+      },
+      "schedule": "every_1d",
+      "keep_events_for": 7776000
+    },
+    {
+      "type": "Agents::RssAgent",
+      "name": "PyLint Release RSS",
+      "disabled": false,
+      "guid": "76f4aafbcc366292208250a53293ebed",
+      "options": {
+        "expected_update_period_in_days": "60",
+        "clean": "false",
+        "url": "https://github.com/PyCQA/pylint/releases.atom"
+      },
+      "schedule": "every_1d",
+      "keep_events_for": 7776000
+    },
+    {
+      "type": "Agents::RssAgent",
+      "name": "Grafana Releases RSS",
+      "disabled": false,
+      "guid": "78508aa588a0a5cd93dfba2b8c24af01",
+      "options": {
+        "expected_update_period_in_days": "5",
+        "clean": "false",
+        "url": "https://github.com/grafana/grafana/releases.atom"
+      },
+      "schedule": "every_1d",
+      "keep_events_for": 2592000
+    },
+    {
+      "type": "Agents::RssAgent",
+      "name": "Huginn Tags RSS",
+      "disabled": false,
+      "guid": "81cecf8033598eff374441c4b7985dba",
+      "options": {
+        "expected_update_period_in_days": "5",
+        "clean": "false",
+        "url": "https://github.com/huginn/huginn/tags.atom"
+      },
+      "schedule": "every_1d",
+      "keep_events_for": 2592000
+    },
+    {
+      "type": "Agents::RssAgent",
+      "name": "Alertmanager Releases RSS",
+      "disabled": false,
+      "guid": "83d145946c0eb08c9504e61e762148ac",
+      "options": {
+        "expected_update_period_in_days": "5",
+        "clean": "false",
+        "url": "https://github.com/prometheus/alertmanager/releases.atom"
+      },
+      "schedule": "every_1d",
+      "keep_events_for": 2592000
+    },
+    {
+      "type": "Agents::TriggerAgent",
+      "name": "Mail Bot Release Filter",
+      "disabled": false,
+      "guid": "86ed44f2d31c8d104bc7ad9a07d8263d",
+      "options": {
+        "expected_receive_period_in_days": "180",
+        "keep_event": "true",
+        "rules": [
+          {
+            "type": "regex",
+            "value": ".*(release|new version|general avail|[0-9]ga[ .;]).*",
+            "path": "fulltext"
+          },
+          {
+            "type": "!regex",
+            "value": ".*(pre[ -]*release|release candidate|alpha|beta).*",
+            "path": "fulltext"
+          }
+        ]
+      },
+      "keep_events_for": 2592000,
+      "propagate_immediately": true
+    },
+    {
+      "type": "Agents::JqAgent",
+      "name": "Github Tag RSS Prefilter",
+      "disabled": false,
+      "guid": "870b46e3ff0cda42c32438f101863633",
+      "options": {
+        "filter": "{ \"url\": .url, \"title\": .title, \"content\": .content, \"description\": .description, \"date\": ( if .date_published and .date_published != \"\" then .date_published else .last_updated end ), \"source\": ( .url / \"/\" | \"github:\" + .[3] + \"/\" + .[4] + \":tags\"), \"tag\": ( .title / \":\" | .[0] ), \"version\": ( .title | match(\"v?[0-9]+(\\\\.[0-9]+)+[a-zA-Z0-9_.~+-]*\" ) | .string? // \"\" ), \"text\": ( if .content and .content != \"\" then .content else .description end ), \"fulltext\": ( .title + .description + .content ) }",
+        "variables": {
+        }
+      },
+      "keep_events_for": 2592000,
+      "propagate_immediately": false
+    },
+    {
+      "type": "Agents::ImapFolderAgent",
+      "name": "Mail Bot Firehose",
+      "disabled": false,
+      "guid": "8bc2d62c0a53386689ac59b166393b70",
+      "options": {
+        "expected_update_period_in_days": "90",
+        "host": "imap.gmail.com",
+        "ssl": true,
+        "username": "{% credential mail_bot_username %}",
+        "password": "{% credential mail_bot_password %}",
+        "folders": [
+          "INBOX"
+        ],
+        "conditions": {
+        }
+      },
+      "schedule": "every_30m",
+      "keep_events_for": 0
+    },
+    {
+      "type": "Agents::JqAgent",
+      "name": "Tinc VPN Release Digest Entry",
+      "disabled": false,
+      "guid": "90d473e3a31131172e11262e4ad4afcc",
+      "options": {
+        "filter": "{ \"message\": (\"<h3>Tinc VPN: <a href=\\\"\" + .url + \"\\\">\" + .title + \"</a></h3>\" + \"<div>\" + ( if .content == .description then .content else ( .description + \"< /div><div>\" + .content ) end )  + \"</div>\") }",
+        "variables": {
+        }
+      },
+      "keep_events_for": 2592000,
+      "propagate_immediately": false
+    },
+    {
+      "type": "Agents::RssAgent",
+      "name": "Jedi-VIM Tag RSS",
+      "disabled": false,
+      "guid": "9f29ee418c28d7987b8d1d12452a0a5a",
+      "options": {
+        "expected_update_period_in_days": "700",
+        "clean": "false",
+        "url": "https://github.com/davidhalter/jedi-vim/tags.atom"
+      },
+      "schedule": "every_1d",
+      "keep_events_for": 0
+    },
+    {
+      "type": "Agents::RssAgent",
+      "name": "Tinc VPN RSS",
+      "disabled": false,
+      "guid": "b67af6792e97a2ee2f9532030eb8ae26",
+      "options": {
+        "expected_update_period_in_days": "30",
+        "clean": "false",
+        "url": "https://www.tinc-vpn.org/news/index.rss"
+      },
+      "schedule": "every_12h",
+      "keep_events_for": 2592000
+    },
+    {
+      "type": "Agents::RssAgent",
+      "name": "Ansible Tag RSS",
+      "disabled": false,
+      "guid": "cfafb25ba9ece47104eb5d4345a3514d",
+      "options": {
+        "expected_update_period_in_days": "60",
+        "clean": "false",
+        "url": "https://github.com/ansible/ansible/tags.atom"
+      },
+      "schedule": "every_1d",
+      "keep_events_for": 0
+    },
+    {
+      "type": "Agents::RssAgent",
+      "name": "Linuxserver Plex Release RSS",
+      "disabled": false,
+      "guid": "d1ac77fdf33c93d232e7f9fbcbe21a1e",
+      "options": {
+        "expected_update_period_in_days": "60",
+        "clean": "false",
+        "url": "https://github.com/linuxserver/docker-plex/releases.atom"
+      },
+      "schedule": "every_1d",
+      "keep_events_for": 7776000
+    },
+    {
+      "type": "Agents::RssAgent",
+      "name": "ACME-DNS Release RSS",
+      "disabled": false,
+      "guid": "d45c7b9d389be0f09f5f91fcf563787a",
+      "options": {
+        "expected_update_period_in_days": "180",
+        "clean": "false",
+        "url": "https://github.com/joohoi/acme-dns/releases.atom"
+      },
+      "schedule": "every_1d",
+      "keep_events_for": 2592000
+    },
+    {
+      "type": "Agents::RssAgent",
+      "name": "Linuxserver qBittorrent Release RSS",
+      "disabled": false,
+      "guid": "e65445fe7ade21aa1597b2604f03542c",
+      "options": {
+        "expected_update_period_in_days": "60",
+        "clean": "false",
+        "url": "https://github.com/linuxserver/docker-qbittorrent/releases.atom"
+      },
+      "schedule": "every_1d",
+      "keep_events_for": 2592000
+    },
+    {
+      "type": "Agents::RssAgent",
+      "name": "PyYaml Tags RSS",
+      "disabled": false,
+      "guid": "f1b128ccb1d58704e949b5e548e41112",
+      "options": {
+        "expected_update_period_in_days": "5",
+        "clean": "false",
+        "url": "https://github.com/yaml/pyyaml/tags.atom"
+      },
+      "schedule": "every_1d",
+      "keep_events_for": 2592000
+    },
+    {
+      "type": "Agents::JqAgent",
+      "name": "Github Tag To Digest Entry",
+      "disabled": false,
+      "guid": "fbdce72e1af03fbe777c341955b45aa2",
+      "options": {
+        "filter": "{ \"message\": ( \"<h3>\" + .source + \":\" + .tag +\" <a href=\\\"\" +  .url + \"\\\">\" + .title + \"</a></h3><div>\" + ( if .text and .text != \"\" then .text else \"This appears to be a release.\" end ) + \"</div>\") }",
+        "variables": {
+        }
+      },
+      "keep_events_for": 2592000,
+      "propagate_immediately": false
+    }
+  ],
+  "links": [
+    {
+      "source": 0,
+      "receiver": 30
+    },
+    {
+      "source": 1,
+      "receiver": 30
+    },
+    {
+      "source": 2,
+      "receiver": 6
+    },
+    {
+      "source": 4,
+      "receiver": 6
+    },
+    {
+      "source": 5,
+      "receiver": 6
+    },
+    {
+      "source": 6,
+      "receiver": 3
+    },
+    {
+      "source": 7,
+      "receiver": 9
+    },
+    {
+      "source": 8,
+      "receiver": 20
+    },
+    {
+      "source": 9,
+      "receiver": 1
+    },
+    {
+      "source": 10,
+      "receiver": 20
+    },
+    {
+      "source": 11,
+      "receiver": 19
+    },
+    {
+      "source": 12,
+      "receiver": 22
+    },
+    {
+      "source": 13,
+      "receiver": 6
+    },
+    {
+      "source": 14,
+      "receiver": 20
+    },
+    {
+      "source": 15,
+      "receiver": 6
+    },
+    {
+      "source": 16,
+      "receiver": 6
+    },
+    {
+      "source": 17,
+      "receiver": 20
+    },
+    {
+      "source": 18,
+      "receiver": 6
+    },
+    {
+      "source": 19,
+      "receiver": 3
+    },
+    {
+      "source": 20,
+      "receiver": 0
+    },
+    {
+      "source": 21,
+      "receiver": 11
+    },
+    {
+      "source": 22,
+      "receiver": 3
+    },
+    {
+      "source": 23,
+      "receiver": 20
+    },
+    {
+      "source": 24,
+      "receiver": 12
+    },
+    {
+      "source": 25,
+      "receiver": 9
+    },
+    {
+      "source": 26,
+      "receiver": 6
+    },
+    {
+      "source": 27,
+      "receiver": 6
+    },
+    {
+      "source": 28,
+      "receiver": 6
+    },
+    {
+      "source": 29,
+      "receiver": 20
+    },
+    {
+      "source": 30,
+      "receiver": 3
+    }
+  ],
+  "control_links": [
+
+  ]
+}
