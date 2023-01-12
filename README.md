@@ -2,7 +2,7 @@ My more interesting Huginn scenarios.
 
 # Scenarios
 
-# release-notifications.json
+## release-notifications.json
 
 Create an email digest with daily updates on software releases.
 
