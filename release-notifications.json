@@ -7,7 +7,7 @@
   "tag_fg_color": "#ffffff",
   "tag_bg_color": "#84de5b",
   "icon": "gift",
-  "exported_at": "2023-01-12T18:02:00Z",
+  "exported_at": "2023-10-09T12:24:13Z",
   "agents": [
     {
       "type": "Agents::TriggerAgent",
@@ -81,6 +81,19 @@
     },
     {
       "type": "Agents::RssAgent",
+      "name": "Mediawiki Dockerhub Tag RSS",
+      "disabled": false,
+      "guid": "10b49e65e8c26cdf725638ccc5febb8d",
+      "options": {
+        "expected_update_period_in_days": "5",
+        "clean": "false",
+        "url": "https://rss.p.theconnman.com/_/mediawiki.atom"
+      },
+      "schedule": "every_1d",
+      "keep_events_for": 7776000
+    },
+    {
+      "type": "Agents::RssAgent",
       "name": "Flake8 Release RSS",
       "disabled": false,
       "guid": "1123819e077605a8bc1171a54fde13a7",
@@ -106,6 +119,19 @@
       "keep_events_for": 2592000
     },
     {
+      "type": "Agents::RssAgent",
+      "name": "Postgres Dockerhub Tag RSS",
+      "disabled": false,
+      "guid": "2c00de0f0c79051e67010e7bee0f066a",
+      "options": {
+        "expected_update_period_in_days": "5",
+        "clean": "false",
+        "url": "https://rss.p.theconnman.com/_/postgres.atom"
+      },
+      "schedule": "every_1d",
+      "keep_events_for": 0
+    },
+    {
       "type": "Agents::JqAgent",
       "name": "Github Release To Digest Entry",
       "disabled": false,
@@ -119,6 +145,19 @@
       "propagate_immediately": true
     },
     {
+      "type": "Agents::JqAgent",
+      "name": "Dockerhub Tag RSS Prefilter",
+      "disabled": false,
+      "guid": "32b61c33818ff334307bb0c75f012c41",
+      "options": {
+        "filter": "{ \"url\": .url, \"title\": .title, \"content\": .content, \"description\": .description, \"date\": ( if .date_published and .date_published != \"\" then .date_published else .last_updated end ), \"source\": ( .url / \"/\" | \"dockerhub:\" + .[3] + \"/\" + .[4] + \":tags\"), \"tag\": ( .title  / \":\"  | .[0] ), \"version\": ( .title | split(\":\") | .[0] ), \"text\": ( if .content and .content != \"\" then .content else .description end ), \"fulltext\": ( .title + .description + .content ) }",
+        "variables": {
+        }
+      },
+      "keep_events_for": 2592000,
+      "propagate_immediately": false
+    },
+    {
       "type": "Agents::RssAgent",
       "name": "OPNSense Tag RSS",
       "disabled": false,
@@ -130,6 +169,19 @@
       },
       "schedule": "every_1d",
       "keep_events_for": 15552000
+    },
+    {
+      "type": "Agents::RssAgent",
+      "name": "Healthchecks Release RSS",
+      "disabled": false,
+      "guid": "3942b227a8b040f894df47a2e1ed6928",
+      "options": {
+        "expected_update_period_in_days": "180",
+        "clean": "false",
+        "url": "https://github.com/healthchecks/healthchecks/releases.atom"
+      },
+      "schedule": "every_1d",
+      "keep_events_for": 2592000
     },
     {
       "type": "Agents::RssAgent",
@@ -206,6 +258,19 @@
       },
       "keep_events_for": 2592000,
       "propagate_immediately": false
+    },
+    {
+      "type": "Agents::RssAgent",
+      "name": "Uptime-Kuma Release RSS",
+      "disabled": false,
+      "guid": "61011ee9df73b78757a9c07fba3945a5",
+      "options": {
+        "expected_update_period_in_days": "180",
+        "clean": "false",
+        "url": "https://github.com/louislam/uptime-kuma/releases.atom"
+      },
+      "schedule": "every_1d",
+      "keep_events_for": 2592000
     },
     {
       "type": "Agents::RssAgent",
@@ -343,6 +408,19 @@
       "keep_events_for": 0
     },
     {
+      "type": "Agents::RssAgent",
+      "name": "Filebrowser Dockerhub Tag RSS",
+      "disabled": false,
+      "guid": "8db665b672ad645dc314381f73157b04",
+      "options": {
+        "expected_update_period_in_days": "5",
+        "clean": "false",
+        "url": "https://rss.p.theconnman.com/filebrowser/filebrowser.atom"
+      },
+      "schedule": "every_1d",
+      "keep_events_for": 7776000
+    },
+    {
       "type": "Agents::JqAgent",
       "name": "Tinc VPN Release Digest Entry",
       "disabled": false,
@@ -393,19 +471,6 @@
       },
       "schedule": "every_1d",
       "keep_events_for": 0
-    },
-    {
-      "type": "Agents::RssAgent",
-      "name": "Linuxserver Plex Release RSS",
-      "disabled": false,
-      "guid": "d1ac77fdf33c93d232e7f9fbcbe21a1e",
-      "options": {
-        "expected_update_period_in_days": "60",
-        "clean": "false",
-        "url": "https://github.com/linuxserver/docker-plex/releases.atom"
-      },
-      "schedule": "every_1d",
-      "keep_events_for": 7776000
     },
     {
       "type": "Agents::RssAgent",
@@ -463,27 +528,27 @@
   "links": [
     {
       "source": 0,
-      "receiver": 30
+      "receiver": 35
     },
     {
       "source": 1,
-      "receiver": 30
+      "receiver": 35
     },
     {
       "source": 2,
-      "receiver": 6
+      "receiver": 8
     },
     {
       "source": 4,
-      "receiver": 6
+      "receiver": 9
     },
     {
       "source": 5,
-      "receiver": 6
+      "receiver": 8
     },
     {
       "source": 6,
-      "receiver": 3
+      "receiver": 8
     },
     {
       "source": 7,
@@ -491,94 +556,114 @@
     },
     {
       "source": 8,
-      "receiver": 20
+      "receiver": 3
     },
     {
       "source": 9,
-      "receiver": 1
-    },
-    {
-      "source": 10,
-      "receiver": 20
-    },
-    {
-      "source": 11,
-      "receiver": 19
-    },
-    {
-      "source": 12,
-      "receiver": 22
-    },
-    {
-      "source": 13,
-      "receiver": 6
-    },
-    {
-      "source": 14,
-      "receiver": 20
-    },
-    {
-      "source": 15,
-      "receiver": 6
-    },
-    {
-      "source": 16,
-      "receiver": 6
-    },
-    {
-      "source": 17,
-      "receiver": 20
-    },
-    {
-      "source": 18,
-      "receiver": 6
-    },
-    {
-      "source": 19,
-      "receiver": 3
-    },
-    {
-      "source": 20,
       "receiver": 0
     },
     {
+      "source": 10,
+      "receiver": 13
+    },
+    {
+      "source": 11,
+      "receiver": 8
+    },
+    {
+      "source": 12,
+      "receiver": 25
+    },
+    {
+      "source": 13,
+      "receiver": 1
+    },
+    {
+      "source": 14,
+      "receiver": 25
+    },
+    {
+      "source": 15,
+      "receiver": 24
+    },
+    {
+      "source": 16,
+      "receiver": 28
+    },
+    {
+      "source": 17,
+      "receiver": 8
+    },
+    {
+      "source": 18,
+      "receiver": 8
+    },
+    {
+      "source": 19,
+      "receiver": 25
+    },
+    {
+      "source": 20,
+      "receiver": 8
+    },
+    {
       "source": 21,
-      "receiver": 11
+      "receiver": 8
     },
     {
       "source": 22,
-      "receiver": 3
+      "receiver": 25
     },
     {
       "source": 23,
-      "receiver": 20
+      "receiver": 8
     },
     {
       "source": 24,
-      "receiver": 12
+      "receiver": 3
     },
     {
       "source": 25,
-      "receiver": 9
+      "receiver": 0
     },
     {
       "source": 26,
-      "receiver": 6
+      "receiver": 15
     },
     {
       "source": 27,
-      "receiver": 6
+      "receiver": 9
     },
     {
       "source": 28,
-      "receiver": 6
+      "receiver": 3
     },
     {
       "source": 29,
-      "receiver": 20
+      "receiver": 25
     },
     {
       "source": 30,
+      "receiver": 16
+    },
+    {
+      "source": 31,
+      "receiver": 13
+    },
+    {
+      "source": 32,
+      "receiver": 8
+    },
+    {
+      "source": 33,
+      "receiver": 8
+    },
+    {
+      "source": 34,
+      "receiver": 25
+    },
+    {
+      "source": 35,
       "receiver": 3
     }
   ],

@@ -1,13 +1,13 @@
 {
   "schema_version": 1,
   "name": "Security Issues",
-  "description": "Detects security issues with the given software. \r\n\r\n# Searches\r\n- Email\r\n- ExploitDB (via RSS)\r\n- Github commits (via RSS)\r\n- Github notifications\r\n- RSS feeds (TincVPN)\r\n- Webpages (NGINX security advisories)\r\n\r\n# Credentials\r\nRequires the following credentials:\r\n\r\n* mail_bot_username - The username for the ImapFolderAgent \"Mail Bot Firehose\"\r\n* mail_bot_password - The password for the ImapFolderAgent \"Mail Bot Firehose\"\r\n* github_access_token - Your Github access token for the GithubNotificationsAgent \"Github Notifications\"",
+  "description": "Detects security issues with the given software and emails a report every 2 hours if any are detected.\r\n\r\n### Searches\r\n- Email\r\n- ExploitDB (via RSS)\r\n- Github commits (via RSS)\r\n- Github notifications\r\n- RSS feeds (TincVPN)\r\n- Webpages (NGINX security advisories)\r\n\r\n### Credentials\r\nRequires the following credentials:\r\n\r\n* mail_bot_username - The username for the ImapFolderAgent \"Mail Bot Firehose\"\r\n* mail_bot_password - The password for the ImapFolderAgent \"Mail Bot Firehose\"\r\n* github_access_token - Your Github access token for the GithubNotificationsAgent \"Github Notifications\"",
   "source_url": false,
   "guid": "b66d2d2044cd37f704b71f2368c5b8d5",
   "tag_fg_color": "#ffffff",
   "tag_bg_color": "#de5b8c",
   "icon": "flag",
-  "exported_at": "2023-01-12T16:47:58Z",
+  "exported_at": "2023-10-09T12:23:55Z",
   "agents": [
     {
       "type": "Agents::JqAgent",
@@ -166,6 +166,59 @@
     },
     {
       "type": "Agents::RssAgent",
+      "name": "Mediawiki Commits RSS",
+      "disabled": false,
+      "guid": "279156f00edaac25416ef95d80195636",
+      "options": {
+        "expected_update_period_in_days": "180",
+        "clean": "false",
+        "url": "https://github.com/wikimedia/mediawiki/commits/master.atom"
+      },
+      "schedule": "every_2h",
+      "keep_events_for": 2592000
+    },
+    {
+      "type": "Agents::TriggerAgent",
+      "name": "ExploitDB Catchall Service Trigger",
+      "disabled": false,
+      "guid": "280d59de73295db87a43547315ee9edc",
+      "options": {
+        "expected_receive_period_in_days": "7",
+        "keep_event": "true",
+        "rules": [
+          {
+            "type": "regex",
+            "value": ".*mediawiki.*",
+            "path": "title"
+          },
+          {
+            "type": "regex",
+            "value": ".*healthcheck.*",
+            "path": "title"
+          },
+          {
+            "type": "regex",
+            "value": ".*filebrowser.*",
+            "path": "title"
+          },
+          {
+            "type": "regex",
+            "value": ".*uptime-kuma.*",
+            "path": "title"
+          },
+          {
+            "type": "regex",
+            "value": ".*postgres.*",
+            "path": "title"
+          }
+        ],
+        "must_match": "1"
+      },
+      "keep_events_for": 7776000,
+      "propagate_immediately": true
+    },
+    {
+      "type": "Agents::RssAgent",
       "name": "Paramiko Commits RSS",
       "disabled": false,
       "guid": "2c74a86303a48e02895e60169243cbc7",
@@ -256,11 +309,24 @@
     },
     {
       "type": "Agents::RssAgent",
+      "name": "Healthchecks Commits RSS",
+      "disabled": false,
+      "guid": "3d917fa7fd22f9f7727c663a8b7c2fe7",
+      "options": {
+        "expected_update_period_in_days": "180",
+        "clean": "false",
+        "url": "https://github.com/healthchecks/healthchecks/commits/master.atom"
+      },
+      "schedule": "every_2h",
+      "keep_events_for": 2592000
+    },
+    {
+      "type": "Agents::RssAgent",
       "name": "ACME-DNS Commits RSS",
       "disabled": false,
       "guid": "3f8f7dd428436d28be9dedad7fcfa986",
       "options": {
-        "expected_update_period_in_days": "180",
+        "expected_update_period_in_days": "999",
         "clean": "false",
         "url": "https://github.com/joohoi/acme-dns/commits/master.atom"
       },
@@ -443,6 +509,19 @@
       "keep_events_for": 2592000
     },
     {
+      "type": "Agents::RssAgent",
+      "name": "Uptime-Kuma Commits RSS",
+      "disabled": false,
+      "guid": "bfb1be454101f21e791c6146d056fc9f",
+      "options": {
+        "expected_update_period_in_days": "180",
+        "clean": "false",
+        "url": "https://github.com/louislam/uptime-kuma/commits/master.atom"
+      },
+      "schedule": "every_2h",
+      "keep_events_for": 2592000
+    },
+    {
       "type": "Agents::TriggerAgent",
       "name": "ExploitDB My Projects Trigger",
       "disabled": false,
@@ -549,11 +628,11 @@
     },
     {
       "source": 1,
-      "receiver": 21
+      "receiver": 24
     },
     {
       "source": 2,
-      "receiver": 29
+      "receiver": 33
     },
     {
       "source": 3,
@@ -569,7 +648,7 @@
     },
     {
       "source": 6,
-      "receiver": 20
+      "receiver": 23
     },
     {
       "source": 7,
@@ -577,47 +656,47 @@
     },
     {
       "source": 8,
-      "receiver": 20
+      "receiver": 23
     },
     {
       "source": 9,
-      "receiver": 5
+      "receiver": 2
     },
     {
       "source": 10,
-      "receiver": 2
+      "receiver": 23
     },
     {
       "source": 11,
-      "receiver": 2
+      "receiver": 5
     },
     {
       "source": 12,
-      "receiver": 20
+      "receiver": 2
     },
     {
       "source": 13,
-      "receiver": 20
+      "receiver": 2
+    },
+    {
+      "source": 14,
+      "receiver": 23
     },
     {
       "source": 15,
-      "receiver": 20
+      "receiver": 23
     },
     {
       "source": 16,
-      "receiver": 30
-    },
-    {
-      "source": 17,
-      "receiver": 3
+      "receiver": 23
     },
     {
       "source": 18,
-      "receiver": 17
+      "receiver": 23
     },
     {
       "source": 19,
-      "receiver": 20
+      "receiver": 34
     },
     {
       "source": 20,
@@ -625,43 +704,47 @@
     },
     {
       "source": 21,
-      "receiver": 28
-    },
-    {
-      "source": 21,
-      "receiver": 23
-    },
-    {
-      "source": 21,
-      "receiver": 7
-    },
-    {
-      "source": 21,
-      "receiver": 4
-    },
-    {
-      "source": 21,
-      "receiver": 11
-    },
-    {
-      "source": 21,
-      "receiver": 26
+      "receiver": 20
     },
     {
       "source": 22,
-      "receiver": 20
+      "receiver": 23
     },
     {
       "source": 23,
-      "receiver": 2
+      "receiver": 3
     },
     {
       "source": 24,
-      "receiver": 0
+      "receiver": 32
+    },
+    {
+      "source": 24,
+      "receiver": 26
+    },
+    {
+      "source": 24,
+      "receiver": 7
+    },
+    {
+      "source": 24,
+      "receiver": 4
+    },
+    {
+      "source": 24,
+      "receiver": 13
+    },
+    {
+      "source": 24,
+      "receiver": 30
+    },
+    {
+      "source": 24,
+      "receiver": 9
     },
     {
       "source": 25,
-      "receiver": 20
+      "receiver": 23
     },
     {
       "source": 26,
@@ -669,15 +752,31 @@
     },
     {
       "source": 27,
-      "receiver": 20
+      "receiver": 0
     },
     {
       "source": 28,
-      "receiver": 2
+      "receiver": 23
+    },
+    {
+      "source": 29,
+      "receiver": 23
     },
     {
       "source": 30,
-      "receiver": 10
+      "receiver": 2
+    },
+    {
+      "source": 31,
+      "receiver": 23
+    },
+    {
+      "source": 32,
+      "receiver": 2
+    },
+    {
+      "source": 34,
+      "receiver": 12
     }
   ],
   "control_links": [
