@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "name": "Ntfy example",
+  "description": "Uses the `ntfy_token` credential. Replace `ntfy.example.com` in `post_url` with your ntfy server of choice.",
+  "source_url": false,
+  "guid": "9b1855a34fdf05520c15e82a7c1bfa62",
+  "tag_fg_color": "#ffffff",
+  "tag_bg_color": "#5bc0de",
+  "icon": "gear",
+  "exported_at": "2025-06-06T14:16:56Z",
+  "agents": [
+    {
+      "type": "Agents::PostAgent",
+      "name": "Ntfy Alert",
+      "disabled": false,
+      "guid": "50a7829e0e93388adc51dda6869709d8",
+      "options": {
+        "post_url": "https://ntfy.example.com",
+        "expected_receive_period_in_days": "1",
+        "content_type": "json",
+        "method": "post",
+        "payload": {
+          "topic": "{{ topic }}",
+          "message": "{{ message | default('') }}",
+          "title": "{{ title | default('') }}",
+          "tags": "{{ tags | default([]) | as_object }}",
+          "click": "{{ click | default('') }}",
+          "priority": "{% if priority == 'max' %}{{ 5 | as_object }}{% elsif priority == 'high' %}{{ 4 | as_object }}{% elsif priority == 'low' %}{{ 2 | as_object }}{% elsif priority == 'min' %}{{ 1 | as_object }}{% else %}{{ 3 | as_object }}{% endif %}"
+        },
+        "headers": {},
+        "emit_events": "true",
+        "parse_body": "true",
+        "no_merge": "true",
+        "output_mode": "clean",
+        "basic_auth": ":{% credential ntfy_token %}"
+      },
+      "schedule": "never",
+      "keep_events_for": 604800,
+      "propagate_immediately": false
+    },
+    {
+      "type": "Agents::ManualEventAgent",
+      "name": "Ntfy Alert Test Source",
+      "disabled": false,
+      "guid": "da953c18a4621590e6883467fa2d3352",
+      "options": {
+        "payload": {
+          "topic": "huginn-alerts",
+          "title": "test title",
+          "message": "test message",
+          "priority": "high",
+          "click": "https://huginn.example.com",
+          "tags": [
+            "warning"
+          ]
+        }
+      },
+      "keep_events_for": 0
+    }
+  ],
+  "links": [
+    {
+      "source": 1,
+      "receiver": 0
+    }
+  ],
+  "control_links": []
+}
