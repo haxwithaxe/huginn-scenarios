@@ -7,7 +7,7 @@
   "tag_fg_color": "#ffffff",
   "tag_bg_color": "#84de5b",
   "icon": "gift",
-  "exported_at": "2023-10-09T12:24:13Z",
+  "exported_at": "2025-06-06T16:03:50Z",
   "agents": [
     {
       "type": "Agents::TriggerAgent",
@@ -138,8 +138,7 @@
       "guid": "2e328439123cc85cd40961bb2c028540",
       "options": {
         "filter": "{ \"message\" : ( \"<h3>github:\" + ( .url / \"/\" | .[-5] + \"/\" + .[-4] ) + \":release <a href=\\\"\" +  .url + \"\\\">\" + .title + \"</a></h3><div><small>\" + ( if .date_published and .date_published != \"\" then .date_published else .last_updated end ) + \"</small></div><div>\" + .content + \"</div>\" ) }",
-        "variables": {
-        }
+        "variables": {}
       },
       "keep_events_for": 2592000,
       "propagate_immediately": true
@@ -151,24 +150,10 @@
       "guid": "32b61c33818ff334307bb0c75f012c41",
       "options": {
         "filter": "{ \"url\": .url, \"title\": .title, \"content\": .content, \"description\": .description, \"date\": ( if .date_published and .date_published != \"\" then .date_published else .last_updated end ), \"source\": ( .url / \"/\" | \"dockerhub:\" + .[3] + \"/\" + .[4] + \":tags\"), \"tag\": ( .title  / \":\"  | .[0] ), \"version\": ( .title | split(\":\") | .[0] ), \"text\": ( if .content and .content != \"\" then .content else .description end ), \"fulltext\": ( .title + .description + .content ) }",
-        "variables": {
-        }
+        "variables": {}
       },
       "keep_events_for": 2592000,
       "propagate_immediately": false
-    },
-    {
-      "type": "Agents::RssAgent",
-      "name": "OPNSense Tag RSS",
-      "disabled": false,
-      "guid": "363aecc59b49387d16e805eacd673e34",
-      "options": {
-        "expected_update_period_in_days": "60",
-        "clean": "false",
-        "url": "https://github.com/opnsense/core/tags.atom"
-      },
-      "schedule": "every_1d",
-      "keep_events_for": 15552000
     },
     {
       "type": "Agents::RssAgent",
@@ -203,8 +188,7 @@
       "guid": "4190484a9a5d4005c59a1049d15297f7",
       "options": {
         "filter": "{ \"url\": .url, \"title\": .title, \"content\": .content, \"description\": .description, \"date\": ( if .date_published and .date_published != \"\" then .date_published else .last_updated end ), \"source\": ( .url / \"/\" | \"github:\" + .[3] + \"/\" + .[4] + \":tags\"), \"tag\": ( .title / \":\" | .[0] ), \"version\": ( .title | match(\"v?[0-9]+(\\\\.[0-9]+)+[a-zA-Z0-9_.~+-]*\" ) | .string? // \"\" ), \"text\": ( if .content and .content != \"\" then .content else .description end ), \"fulltext\": ( .title + .description + .content ) }",
-        "variables": {
-        }
+        "variables": {}
       },
       "keep_events_for": 2592000,
       "propagate_immediately": false
@@ -223,23 +207,10 @@
       "keep_events_for": 15552000
     },
     {
-      "type": "Agents::JqAgent",
-      "name": "Mail Bot Prefilter",
-      "disabled": false,
-      "guid": "55e0176ed8e3585181948778f6e39528",
-      "options": {
-        "filter": "{ \"url\": \"#\", \"title\": .subject, \"source\": ( \"mail:\" + .from  ), \"date\": .date, \"text\": ( \"<div>\" + .body + \"</div>\" ), \"fulltext\": ( .subject + .body ) }",
-        "variables": {
-        }
-      },
-      "keep_events_for": 2592000,
-      "propagate_immediately": true
-    },
-    {
       "type": "Agents::TriggerAgent",
-      "name": "TincVPN Release Filter",
+      "name": "Proxmox Release Filter",
       "disabled": false,
-      "guid": "5ad18c7662e26df68a71ead0ba431538",
+      "guid": "47867f1f0bcfd1959764a50b9263c783",
       "options": {
         "expected_receive_period_in_days": "175",
         "keep_event": "true",
@@ -251,13 +222,38 @@
           },
           {
             "type": "regex",
-            "value": ".*v?[0-9]+(\\.[0-9]+)*(-[a-z0-9]+)*.*",
+            "value": "Proxmox VE .* released!",
             "path": "title"
           }
         ]
       },
       "keep_events_for": 2592000,
       "propagate_immediately": false
+    },
+    {
+      "type": "Agents::JqAgent",
+      "name": "Mail Bot Prefilter",
+      "disabled": false,
+      "guid": "55e0176ed8e3585181948778f6e39528",
+      "options": {
+        "filter": "{ \"url\": \"#\", \"title\": .subject, \"source\": ( \"mail:\" + .from  ), \"date\": .date, \"text\": ( \"<div>\" + .body + \"</div>\" ), \"fulltext\": ( .subject + .body ) }",
+        "variables": {}
+      },
+      "keep_events_for": 2592000,
+      "propagate_immediately": true
+    },
+    {
+      "type": "Agents::RssAgent",
+      "name": "Proxmox Announcement RSS",
+      "disabled": false,
+      "guid": "5b5722dfad2414ca5e27f24ea282fb52",
+      "options": {
+        "expected_update_period_in_days": "180",
+        "clean": "false",
+        "url": "https://my.proxmox.com/en/announcements/rss"
+      },
+      "schedule": "every_1d",
+      "keep_events_for": 31536000
     },
     {
       "type": "Agents::RssAgent",
@@ -381,8 +377,7 @@
       "guid": "870b46e3ff0cda42c32438f101863633",
       "options": {
         "filter": "{ \"url\": .url, \"title\": .title, \"content\": .content, \"description\": .description, \"date\": ( if .date_published and .date_published != \"\" then .date_published else .last_updated end ), \"source\": ( .url / \"/\" | \"github:\" + .[3] + \"/\" + .[4] + \":tags\"), \"tag\": ( .title / \":\" | .[0] ), \"version\": ( .title | match(\"v?[0-9]+(\\\\.[0-9]+)+[a-zA-Z0-9_.~+-]*\" ) | .string? // \"\" ), \"text\": ( if .content and .content != \"\" then .content else .description end ), \"fulltext\": ( .title + .description + .content ) }",
-        "variables": {
-        }
+        "variables": {}
       },
       "keep_events_for": 2592000,
       "propagate_immediately": false
@@ -401,8 +396,7 @@
         "folders": [
           "INBOX"
         ],
-        "conditions": {
-        }
+        "conditions": {}
       },
       "schedule": "every_30m",
       "keep_events_for": 0
@@ -421,19 +415,6 @@
       "keep_events_for": 7776000
     },
     {
-      "type": "Agents::JqAgent",
-      "name": "Tinc VPN Release Digest Entry",
-      "disabled": false,
-      "guid": "90d473e3a31131172e11262e4ad4afcc",
-      "options": {
-        "filter": "{ \"message\": (\"<h3>Tinc VPN: <a href=\\\"\" + .url + \"\\\">\" + .title + \"</a></h3>\" + \"<div>\" + ( if .content == .description then .content else ( .description + \"< /div><div>\" + .content ) end )  + \"</div>\") }",
-        "variables": {
-        }
-      },
-      "keep_events_for": 2592000,
-      "propagate_immediately": false
-    },
-    {
       "type": "Agents::RssAgent",
       "name": "Jedi-VIM Tag RSS",
       "disabled": false,
@@ -447,16 +428,40 @@
       "keep_events_for": 0
     },
     {
-      "type": "Agents::RssAgent",
-      "name": "Tinc VPN RSS",
+      "type": "Agents::JqAgent",
+      "name": "Proxmox Announcement RSS Release Prefilter",
       "disabled": false,
-      "guid": "b67af6792e97a2ee2f9532030eb8ae26",
+      "guid": "a3e1b8bf39f22f1c8813c569dd14c1b4",
       "options": {
-        "expected_update_period_in_days": "30",
-        "clean": "false",
-        "url": "https://www.tinc-vpn.org/news/index.rss"
+        "filter": "{ \"url\": .url, \"title\": .title, \"content\": .title, \"description\": .description, \"date\": ( if .date_published and .date_published != \"\" then .date_published else .last_updated end ), \"source\": ( .url / \"/\" | \"github:\" + .[3] + \"/\" + .[4] + \":tags\"), \"tag\": ( .title / \":\" | .[0] ), \"version\": ( .title | match(\"v?[0-9]+(\\\\.[0-9]+)+[a-zA-Z0-9_.~+-]*\" ) | .string? // \"\" ), \"text\": ( if .content and .content != \"\" then .content else .description end ), \"fulltext\": ( .title + .description + .content ) }",
+        "variables": {}
       },
-      "schedule": "every_12h",
+      "keep_events_for": 2592000,
+      "propagate_immediately": false
+    },
+    {
+      "type": "Agents::JqAgent",
+      "name": "Proxmox Release To Digest Entry",
+      "disabled": false,
+      "guid": "aab703822108ba42c11b67ccdfb4f4ea",
+      "options": {
+        "filter": "{ \"message\" : ( \"<h3><a href=\\\"\" +  .url + \"\\\">\" + .title + \"</a></h3><div><small>\" + ( if .date_published and .date_published != \"\" then .date_published else .last_updated end ) + \"</small></div><div>\" + .content + \"</div>\" ) }",
+        "variables": {}
+      },
+      "keep_events_for": 2592000,
+      "propagate_immediately": true
+    },
+    {
+      "type": "Agents::RssAgent",
+      "name": "NetBird Release RSS",
+      "disabled": false,
+      "guid": "c6e7832267eae1f0928cb2dd2a6e057b",
+      "options": {
+        "expected_update_period_in_days": "180",
+        "clean": "false",
+        "url": "https://github.com/netbirdio/netbird/releases.atom"
+      },
+      "schedule": "every_1d",
       "keep_events_for": 2592000
     },
     {
@@ -518,8 +523,7 @@
       "guid": "fbdce72e1af03fbe777c341955b45aa2",
       "options": {
         "filter": "{ \"message\": ( \"<h3>\" + .source + \":\" + .tag +\" <a href=\\\"\" +  .url + \"\\\">\" + .title + \"</a></h3><div>\" + ( if .text and .text != \"\" then .text else \"This appears to be a release.\" end ) + \"</div>\") }",
-        "variables": {
-        }
+        "variables": {}
       },
       "keep_events_for": 2592000,
       "propagate_immediately": false
@@ -528,11 +532,11 @@
   "links": [
     {
       "source": 0,
-      "receiver": 35
+      "receiver": 36
     },
     {
       "source": 1,
-      "receiver": 35
+      "receiver": 36
     },
     {
       "source": 2,
@@ -564,23 +568,23 @@
     },
     {
       "source": 10,
-      "receiver": 13
-    },
-    {
-      "source": 11,
       "receiver": 8
     },
     {
-      "source": 12,
+      "source": 11,
       "receiver": 25
     },
     {
-      "source": 13,
+      "source": 12,
       "receiver": 1
     },
     {
-      "source": 14,
+      "source": 13,
       "receiver": 25
+    },
+    {
+      "source": 14,
+      "receiver": 30
     },
     {
       "source": 15,
@@ -588,7 +592,7 @@
     },
     {
       "source": 16,
-      "receiver": 28
+      "receiver": 29
     },
     {
       "source": 17,
@@ -636,23 +640,23 @@
     },
     {
       "source": 28,
-      "receiver": 3
-    },
-    {
-      "source": 29,
       "receiver": 25
     },
     {
+      "source": 29,
+      "receiver": 14
+    },
+    {
       "source": 30,
-      "receiver": 16
+      "receiver": 3
     },
     {
       "source": 31,
-      "receiver": 13
+      "receiver": 8
     },
     {
       "source": 32,
-      "receiver": 8
+      "receiver": 12
     },
     {
       "source": 33,
@@ -660,14 +664,16 @@
     },
     {
       "source": 34,
-      "receiver": 25
+      "receiver": 8
     },
     {
       "source": 35,
+      "receiver": 25
+    },
+    {
+      "source": 36,
       "receiver": 3
     }
   ],
-  "control_links": [
-
-  ]
+  "control_links": []
 }
